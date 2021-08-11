@@ -4,6 +4,7 @@ import sys
 
 import pypandoc
 import time
+from bs4 import BeautifulSoup
 
 
 # convert docx/pdf to html
@@ -24,7 +25,26 @@ def convert_to_html(filename):
 
         # save console output to file
         sys.stdout = open("results.txt", "w")
+
         # provide content to html parser
+        content = output
+
+        soup = BeautifulSoup(content, 'lxml')
+
+
+
+        ul = soup.find_all("ul")
+
+        ol = soup.find_all("ol")
+
+        links = soup.find_all("a")
+
+        for link in links:
+            print(link.attrs['href'])
+
+        print(ul)
+        print(ol)
+
         # close file
         sys.stdout.close()
 

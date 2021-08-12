@@ -1,9 +1,9 @@
 import argparse
 import os
 import sys
+import time
 
 import pypandoc
-import time
 from bs4 import BeautifulSoup
 
 
@@ -11,7 +11,14 @@ from bs4 import BeautifulSoup
 
 
 def convert_to_html(filename):
+    # start runtime counter
+    t0 = time.perf_counter()
+    # do conversion with pandoc
     output = pypandoc.convert_file(filename, "html")
+
+    # replace "smart quotes".
+    output = output.replace(u"\u2018", '&lsquo;').replace(u"\u2019", '&rsquo;')
+    output = output.replace(u"\u201c", "&ldquo;").replace(u"\u201d", "&rdquo;")
 
     # write the output
     filename, ext = os.path.splitext(filename)
@@ -31,24 +38,16 @@ def convert_to_html(filename):
 
         soup = BeautifulSoup(content, 'lxml')
 
-
-
-        ul = soup.find_all("ul")
-
-        ol = soup.find_all("ol")
-
-        links = soup.find_all("a")
-
-        for link in links:
-            print(link.attrs['href'])
-
-        print(ul)
-        print(ol)
+        list_items = soup.find_all("li")
+        for list_item in list_items:
+            print(list_item.text)
 
         # close file
         sys.stdout.close()
 
         print("Done! Output written to: {}\n".format(filename))
+        t1 = time.perf_counter()
+        print(f"Generated in {t1 - t0:0.4f} seconds")
 
 
 # parse generated html into useable format
@@ -56,12 +55,9 @@ def convert_to_html(filename):
 
 # output results
 if __name__ == "__main__":
-    t0 = time.perf_counter()
     parser = argparse.ArgumentParser(
         description="Convert a Word document to an HTML document."
     )
     parser.add_argument("path", type=str, help="Path to your word document")
     args = parser.parse_args()
     convert_to_html(args.path)
-    t1 = time.perf_counter()
-    print(f"Generated in {t1 - t0:0.4f} seconds")

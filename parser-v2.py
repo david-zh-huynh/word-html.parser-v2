@@ -1,6 +1,5 @@
 import argparse
 import os
-import sys
 import time
 
 import pypandoc
@@ -8,10 +7,7 @@ from bs4 import BeautifulSoup
 
 
 # convert docx/pdf to html
-
-
 def convert_to_html(filename):
-    # start runtime counter
     # do conversion with pandoc
     output = pypandoc.convert_file(filename, "html")
 
@@ -26,24 +22,22 @@ def convert_to_html(filename):
         # Python 2 "fix". If this isn't a string, encode it.
         if type(output) is not str:
             output = output.encode("utf-8")
+
         f.write(output)
-        # Implement HTMLParser
-
-        # save console output to file
-        sys.stdout = open("results.txt", "w")
-
-        # provide content to html parser
-        content = output
-
-        soup = BeautifulSoup(content, 'lxml')
-
-        list_items = soup.find_all("li")
-        for list_item in list_items:
-            print(list_item.text)
-
-        # close file
-        sys.stdout.close()
         print("Done! Output written to: {}\n".format(filename))
+
+
+# edit html file and modify
+def custom_edit_html(filename):
+    spoon = BeautifulSoup(open(filename), 'lxml')
+
+    ul = spoon.find('ul')
+    ul_ls = ul.findChildren('li')
+    for ul_l in ul_ls:
+        ul_l.p.unwrap()
+
+    with open(filename, "w") as edit_file:
+        edit_file.write(str(spoon))
 
 
 # time runtime of program
@@ -73,6 +67,11 @@ class Timer:
         print(f"Elapsed time: {elapsed_time:0.4f} seconds")
 
 
+def count_lines(input_file):
+    lines = input_file.count('\n')
+    return lines
+
+
 # output results
 if __name__ == "__main__":
     # initialize runtime_timer
@@ -84,4 +83,5 @@ if __name__ == "__main__":
     parser.add_argument("path", type=str, help="Path to your word document")
     args = parser.parse_args()
     convert_to_html(args.path)
+    custom_edit_html("document.html")
     t.stop()

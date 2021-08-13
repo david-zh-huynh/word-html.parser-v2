@@ -29,23 +29,81 @@ def convert_to_html(filename):
 
 # edit html file and modify
 def custom_edit_html(filename):
+    # open html file
     spoon = BeautifulSoup(open(filename), 'lxml')
 
+    # find html
     html = spoon.find('html')
-    html.unwrap()
+    if len(html) > 0:
+        # remove/unwrap html tag
+        print('html found and unwrapped')
+        html.unwrap()
+    else:
+        print('no html tag found, all good. program continues...')
+
+    # find body
     body = spoon.find('body')
-    body.unwrap()
+    if len(body) > 0:
+        # remove/unwrap body tag
+        print('body found and unwrapped')
+        body.unwrap()
 
-    ol = spoon.find('ol')
-    ol_lis = ol.findChildren('li')
-    for ol_li in ol_lis:
-        ol_li.p.unwrap()
+    else:
+        print('no body tag found, all good. program continues...')
 
-    ul = spoon.find('ul')
-    ul_lis = ul.findChildren('li')
-    for ul_li in ul_lis:
-        ul_li.p.unwrap()
+    # find links in paragraph
+    find_links = spoon.findAll('p')
+    link_records = []
+    for find_link in find_links:
+        print('paragraphs found')
+        underlined_links = find_link.findChildren('a', href=True)
+        if len(underlined_links) > 0:
+            for underlined_link in underlined_links:
+                underlined_link_text = underlined_link.findChildren('u')
+                print('unwrapped underlining for link')
+                underlined_link_text.u.unwrap()
+        else:
+            print('no link found in paragraph, all good. program continues...')
 
+    # Create dictionary and nummerate tags with exceptions for li, links and images
+    dict_backend = {}
+    lib = {'h1', 'h2', 'h3', 'h4', 'h5', 'p', 'ol', 'ul', 'img', 'table', 'a'}
+    dic_html = spoon.find_all(lib)
+    id_counter = 0
+    # for loop to iterate through all tags mentioned above
+    for i in dic_html:
+        id_counter += 1
+
+        # h1
+        if str(i).startswith("<h1"):
+            dict_backend['h1'] = i.get_text()
+            pass
+        else:
+            # create id counter
+            i['id'] = id_counter
+
+            # ul
+            if i.name == 'ul':
+                # print("ul found :" + str(i.prettify()))
+                dict_backend[id_counter] = str(i.prettify())
+            else:
+                dict_backend[id_counter] = i.get_text()
+
+            # ol
+            if i.name == 'ol':
+                # print("ol found :" + str(i.prettify()))
+                dict_backend[id_counter] = str(i.prettify())
+            else:
+                dict_backend[id_counter] = i.get_text()
+
+            # Table
+            if i.name == 'table':
+                # print("table found :" + str(i.prettify()))
+                dict_backend[id_counter] = str(i.prettify())
+            else:
+                dict_backend[id_counter] = i.get_text()
+
+    print(dict_backend)
     with open(filename, "w") as edit_file:
         edit_file.write(str(spoon))
 

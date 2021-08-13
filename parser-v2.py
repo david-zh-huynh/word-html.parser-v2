@@ -53,11 +53,11 @@ def custom_edit_html(filename):
 
     # find links in paragraph
     find_links = spoon.findAll('p')
-    link_records = []
+    # link_records = []
     for find_link in find_links:
         print('paragraphs found')
-        underlined_links = find_link.findChildren('a', href=True)
-        if len(underlined_links) > 0:
+        underlined_links = find_link.findChildren('a', recursive=False)
+        if underlined_links:
             for underlined_link in underlined_links:
                 underlined_link_text = underlined_link.findChildren('u')
                 print('unwrapped underlining for link')

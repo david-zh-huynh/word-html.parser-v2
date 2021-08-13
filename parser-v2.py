@@ -31,10 +31,20 @@ def convert_to_html(filename):
 def custom_edit_html(filename):
     spoon = BeautifulSoup(open(filename), 'lxml')
 
+    html = spoon.find('html')
+    html.unwrap()
+    body = spoon.find('body')
+    body.unwrap()
+
+    ol = spoon.find('ol')
+    ol_lis = ol.findChildren('li')
+    for ol_li in ol_lis:
+        ol_li.p.unwrap()
+
     ul = spoon.find('ul')
-    ul_ls = ul.findChildren('li')
-    for ul_l in ul_ls:
-        ul_l.p.unwrap()
+    ul_lis = ul.findChildren('li')
+    for ul_li in ul_lis:
+        ul_li.p.unwrap()
 
     with open(filename, "w") as edit_file:
         edit_file.write(str(spoon))

@@ -1,7 +1,6 @@
 import argparse
 import os
 import time
-from pprint import pprint
 
 import pypandoc
 from bs4 import BeautifulSoup
@@ -39,52 +38,60 @@ def custom_edit_html(filename):
     html = spoon.find('html')
     if len(html) > 0:
         # remove/unwrap html tag
-        print('html found and unwrapped')
         html.unwrap()
-    else:
-        print('no html tag found, all good. program continues...')
 
     # find body
     body = spoon.find('body')
     if len(body) > 0:
         # remove/unwrap body tag
-        print('body found and unwrapped')
         body.unwrap()
 
-    else:
-        print('no body tag found, all good. program continues...')
-
     # unwrap p tag in li objects
-    """
-    for li in spoon.find('li'):
-        print('link item found')
-        li_children = li.findChildren("p", recursive=False)
-        for li_p in li_children:
-            print('p tag in link item unwrapped')
-            li_p.p.unwrap()"""
+    for li_tag in spoon.find_all('li'):
+        if li_tag:
+            li_children = li_tag.findChildren('p', recursive=False)
+            if li_children:
+                for child in li_children:
+                    child.unwrap()
+        else:
+            print('no link items found, all good. program continues...')
 
-    # find links in paragraph
+    # find links in paragraphs
     for p_tag in spoon.find_all('p'):
         if p_tag:
-            print('paragraphs found')
             p_a_tag = p_tag.findChildren('a')
-            print('finding a tag children')
             if p_a_tag:
-                print('link in paragraph found')
-                for child in p_a_tag:
-                    underlined = child.findChildren('u')
-                    print('finding underlined text in link tag')
+                for p_a_u_child in p_a_tag:
+                    underlined = p_a_u_child.findChildren('u')
                     if underlined:
-                        print('link with underlined text found')
-                        for underlined_text in underlined:
-                            print('unwrapped underlining for link')
-                            underlined_text.unwrap()
-                    else:
-                        print('no underlined text in link found')
-            else:
-                print('no link found in paragraph, all good. program continues...')
+                        for underlined_link in underlined:
+                            underlined_link.unwrap()
+                # find bolded links in paragraphs
+                for p_a_b_child in p_a_tag:
+                    bolded = p_a_b_child.findChildren('strong')
+                    if bolded:
+                        for strong_link in bolded:
+                            strong_link.unwrap()
         else:
             print('no paragraphs found, program continues')
+
+    # find images in paragraphs
+    for img_p_tag in spoon.find_all('p'):
+        if img_p_tag:
+            img_tag = img_p_tag.findChildren('img')
+            if img_tag:
+                img_p_tag.unwrap()
+
+    # remove colgroup element from tables
+    for table_colgroup_tag in spoon.find_all('table'):
+        if table_colgroup_tag:
+            colgroup_tag = table_colgroup_tag.find('colgroup')
+            if colgroup_tag:
+                print('colgroup element found')
+                colgroup_tag.decompose()
+                print('colgroup element decomposed/removed')
+            else:
+                print('no colgroup found, program continues...')
 
     # remove strong tags in th elements
     for th_tag_rm in spoon.find_all('th'):
@@ -94,7 +101,7 @@ def custom_edit_html(filename):
                 for rm_th_bold in th_tag_rm_strong:
                     rm_th_bold.unwrap()
         else:
-            return 'no th tags found, program continues...'
+            print('no th tags found, program continues...')
 
         # remove strong tags in th elements
         for td_tag_rm in spoon.find_all('td'):
@@ -104,26 +111,36 @@ def custom_edit_html(filename):
                     for rm_td_bold in td_tag_rm_strong:
                         rm_td_bold.unwrap()
             else:
-                return 'no td tags found, program continues...'
+                print('no td tags found, program continues...')
 
-    # Create dictionary for
+    # Create dictionary for tables
     for table in spoon.find_all('table'):
         if table:
-            print('table found')
             meta_dict = {}
             cell_counter = 0
-            for cells in spoon.find_all('th') + spoon.find_all('td'):
-                raw_cells = cells.text.split('\n')
-                cell_list = [raw_cells]
-                cell_counter += 1
-                pprint(cell_list)
-
+            a = iter((spoon.find_all('th') + spoon.find_all('td')))
+            key = ""
+            value = ""
+            for cells in a:
+                raw_cells = cells.text
+                if raw_cells:
+                    cell_counter += 1
+                    if cell_counter % 2 == 1:
+                        key = raw_cells
+                    if cell_counter % 2 == 0:
+                        value = raw_cells
+                else:
+                    print('table appears to be empty...')
+                meta_dict[key] = value
         else:
-            return 'no table found, program continues...'
+            print('no table found, program continues...')
+        # print key, value
+        """for i in meta_dict:
+            print(i + ": " + meta_dict[i])"""
 
     # Create dictionary and nummerate tags with exceptions for li, links and images
     dict_backend = {}
-    lib = {'h1', 'h2', 'h3', 'h4', 'h5', 'p', 'ol', 'ul', 'img', 'table', 'a'}
+    lib = {'h2', 'h3', 'h4', 'h5', 'p', 'ol', 'ul', 'img'}
     dic_html = spoon.find_all(lib)
     id_counter = 0
     # for loop to iterate through all tags mentioned above

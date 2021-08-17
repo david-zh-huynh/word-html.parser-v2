@@ -1,12 +1,15 @@
 import argparse
 import os
 import time
+from pprint import pprint
 
 import pypandoc
 from bs4 import BeautifulSoup
 
 
 # convert docx/pdf to html
+
+
 def convert_to_html(filename):
     # do conversion with pandoc
     output = pypandoc.convert_file(filename, "html")
@@ -24,7 +27,7 @@ def convert_to_html(filename):
             output = output.encode("utf-8")
 
         f.write(output)
-        print("Done! Output written to: {}\n".format(filename))
+        print('Done! Output written to: {}\n'.format(filename))
 
 
 # edit html file and modify
@@ -51,19 +54,72 @@ def custom_edit_html(filename):
     else:
         print('no body tag found, all good. program continues...')
 
+    # unwrap p tag in li objects
+    """
+    for li in spoon.find('li'):
+        print('link item found')
+        li_children = li.findChildren("p", recursive=False)
+        for li_p in li_children:
+            print('p tag in link item unwrapped')
+            li_p.p.unwrap()"""
+
     # find links in paragraph
-    find_links = spoon.findAll('p')
-    # link_records = []
-    for find_link in find_links:
-        print('paragraphs found')
-        underlined_links = find_link.findChildren('a', recursive=False)
-        if underlined_links:
-            for underlined_link in underlined_links:
-                underlined_link_text = underlined_link.findChildren('u')
-                print('unwrapped underlining for link')
-                underlined_link_text.u.unwrap()
+    for p_tag in spoon.find_all('p'):
+        if p_tag:
+            print('paragraphs found')
+            p_a_tag = p_tag.findChildren('a')
+            print('finding a tag children')
+            if p_a_tag:
+                print('link in paragraph found')
+                for child in p_a_tag:
+                    underlined = child.findChildren('u')
+                    print('finding underlined text in link tag')
+                    if underlined:
+                        print('link with underlined text found')
+                        for underlined_text in underlined:
+                            print('unwrapped underlining for link')
+                            underlined_text.unwrap()
+                    else:
+                        print('no underlined text in link found')
+            else:
+                print('no link found in paragraph, all good. program continues...')
         else:
-            print('no link found in paragraph, all good. program continues...')
+            print('no paragraphs found, program continues')
+
+    # remove strong tags in th elements
+    for th_tag_rm in spoon.find_all('th'):
+        if th_tag_rm:
+            th_tag_rm_strong = th_tag_rm.findChildren('strong')
+            if th_tag_rm_strong:
+                for rm_th_bold in th_tag_rm_strong:
+                    rm_th_bold.unwrap()
+        else:
+            return 'no th tags found, program continues...'
+
+        # remove strong tags in th elements
+        for td_tag_rm in spoon.find_all('td'):
+            if td_tag_rm:
+                td_tag_rm_strong = td_tag_rm.findChildren('strong')
+                if td_tag_rm_strong:
+                    for rm_td_bold in td_tag_rm_strong:
+                        rm_td_bold.unwrap()
+            else:
+                return 'no td tags found, program continues...'
+
+    # Create dictionary for
+    for table in spoon.find_all('table'):
+        if table:
+            print('table found')
+            meta_dict = {}
+            cell_counter = 0
+            for cells in spoon.find_all('th') + spoon.find_all('td'):
+                raw_cells = cells.text.split('\n')
+                cell_list = [raw_cells]
+                cell_counter += 1
+                pprint(cell_list)
+
+        else:
+            return 'no table found, program continues...'
 
     # Create dictionary and nummerate tags with exceptions for li, links and images
     dict_backend = {}
@@ -103,7 +159,10 @@ def custom_edit_html(filename):
             else:
                 dict_backend[id_counter] = i.get_text()
 
-    print(dict_backend)
+    encoding = spoon.original_encoding or 'utf-8'
+    print("encoding: " + encoding)
+
+    # print(dict_backend)
     with open(filename, "w") as edit_file:
         edit_file.write(str(spoon))
 
@@ -150,6 +209,11 @@ if __name__ == "__main__":
     )
     parser.add_argument("path", type=str, help="Path to your word document")
     args = parser.parse_args()
+    # convert
     convert_to_html(args.path)
-    custom_edit_html("document.html")
+
+    # parse and edit
+    print('please insert name of newly converted html file:')
+    htmlfile_name = input()
+    custom_edit_html(htmlfile_name)
     t.stop()

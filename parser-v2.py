@@ -112,7 +112,6 @@ def custom_edit_html(filename):
                         rm_td_bold.unwrap()
             else:
                 print('no td tags found, program continues...')
-
     # Create dictionary for tables
     for table in spoon.find_all('table'):
         if table:
@@ -135,9 +134,8 @@ def custom_edit_html(filename):
         else:
             print('no table found, program continues...')
         # print key, value
-        """for i in meta_dict:
-            print(i + ": " + meta_dict[i])"""
-
+        for i in meta_dict:
+            print(i + ": " + meta_dict[i])
     # Create dictionary and nummerate tags with exceptions for li, links and images
     dict_backend = {}
     lib = {'h2', 'h3', 'h4', 'h5', 'p', 'ol', 'ul', 'img'}
@@ -149,12 +147,10 @@ def custom_edit_html(filename):
 
         # h1
         if str(i).startswith("<h1"):
-            dict_backend['h1'] = i.get_text()
-            pass
+            print('h1 found, skip iteration for this element')
         else:
             # create id counter
             i['id'] = id_counter
-
             # ul
             if i.name == 'ul':
                 # print("ul found :" + str(i.prettify()))
@@ -175,6 +171,18 @@ def custom_edit_html(filename):
                 dict_backend[id_counter] = str(i.prettify())
             else:
                 dict_backend[id_counter] = i.get_text()
+
+    # dictionary for backend
+    lib_send = {'h2', 'h3', 'h4', 'h5', 'p', 'ol', 'ul', 'img'}
+    dict_send = spoon.find_all(lib_send)
+    for get_send_objects in dict_send:
+        if get_send_objects:
+            # dict_send_list = {}
+            print('List obtained from html file')
+            # if
+
+        else:
+            print('Error: it appears that the document is either poorly formatted or empty')
 
     encoding = spoon.original_encoding or 'utf-8'
     print("encoding: " + encoding)

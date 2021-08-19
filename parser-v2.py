@@ -136,6 +136,7 @@ def custom_edit_html(filename):
         # print key, value
         for i in meta_dict:
             print(i + ": " + meta_dict[i])
+        print('______________________________')
     # Create dictionary and nummerate tags with exceptions for li, links and images
     dict_backend = {}
     lib = {'h2', 'h3', 'h4', 'h5', 'p', 'ol', 'ul', 'img'}
@@ -173,16 +174,16 @@ def custom_edit_html(filename):
                 dict_backend[id_counter] = i.get_text()
 
     # dictionary for backend
-    lib_send = {'h2', 'h3', 'h4', 'h5', 'p', 'ol', 'ul', 'img'}
-    dict_send = spoon.find_all(lib_send)
-    for get_send_objects in dict_send:
-        if get_send_objects:
-            # dict_send_list = {}
-            print('List obtained from html file')
-            # if
-
+    import re
+    lib_send = {'h2', 'h3', 'h4', 'h5', 'p', 'ol', 'ul'}
+    for dict_send in spoon.find_all(lib_send):
+        if dict_send:
+            key = dict_send['id']
+            # remove p start and end tags
+            value = re.sub("</?p[^>]*>", "", str(dict_send))
+            print(key, value)
         else:
-            print('Error: it appears that the document is either poorly formatted or empty')
+            print('original word document either empty or very poorly formatted, thus no html output can be displayed/generated')
 
     encoding = spoon.original_encoding or 'utf-8'
     print("encoding: " + encoding)

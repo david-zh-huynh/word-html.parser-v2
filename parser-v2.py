@@ -88,9 +88,7 @@ def custom_edit_html(filename):
         if table_colgroup_tag:
             colgroup_tag = table_colgroup_tag.find('colgroup')
             if colgroup_tag:
-                print('colgroup element found')
                 colgroup_tag.decompose()
-                print('colgroup element decomposed/removed')
             else:
                 print('no colgroup found, program continues...')
 
@@ -136,9 +134,11 @@ def custom_edit_html(filename):
         else:
             print('no table found, program continues...')
         # print key, value
+        print('______________________________')
+        print('Metadata: ')
+        print('------------------------------')
         for i in meta_dict:
             print(i + ": " + meta_dict[i])
-        print('______________________________')
 
     # Create dictionary and nummerate tags with exceptions for li, links and images
     dict_backend = {}
@@ -209,10 +209,15 @@ def custom_edit_html(filename):
         else:
             print(
                 'original word document either empty or very poorly formatted, thus no html output can be displayed/generated')
-    """# output of text_entries_dict
+    # output of text_entries_dict
+    print('Text Content: ')
+    print('------------------------------')
     for key in text_entries_dict:
-        print(str(key), "this is the output of key: " + text_entries_dict[key])"""
+        print(str(key), text_entries_dict[key])
 
+    # break between text content and images
+    print('Image Content: ')
+    print('------------------------------')
     # dictionary for images with discription
     image_entries_dict = {}
     for img_dict_list_search in dic_html:
@@ -230,7 +235,9 @@ def custom_edit_html(filename):
         print(str(key['id']), image_entries_dict[key])
 
     encoding = spoon.original_encoding or 'utf-8'
+    print("______________________________")
     print("encoding: " + encoding)
+    print("______________________________")
 
     # print(dict_backend)
     with open(filename, "w") as edit_file:
@@ -268,6 +275,13 @@ def count_lines(input_file):
     lines = input_file.count('\n')
     return lines
 
+"""
+def covert_dict_to_json():
+    print('implement')
+
+def input_article_id():
+    input_id_dict = {}"""
+
 
 # output results
 if __name__ == "__main__":
@@ -286,4 +300,5 @@ if __name__ == "__main__":
     print('please insert name of newly converted html file:')
     htmlfile_name = input()
     custom_edit_html(htmlfile_name)
+    print('Ready to send to Blog Backend')
     t.stop()

@@ -6,8 +6,8 @@ import re
 import pypandoc
 from bs4 import BeautifulSoup
 
-
 # convert docx/pdf to html
+import utils
 
 
 def convert_to_html(filename):
@@ -226,7 +226,7 @@ def custom_edit_html(filename):
                 key = img_dict_send
                 value = ""
                 if img_dict_send:
-                    img_dict_descs = spoon.find_all(id=key['id']+1)
+                    img_dict_descs = spoon.find_all(id=key['id'] + 1)
                     for img_dict_desc in img_dict_descs:
                         value = img_dict_desc.string
                 # assign  key to value
@@ -242,6 +242,11 @@ def custom_edit_html(filename):
     # print(dict_backend)
     with open(filename, "w") as edit_file:
         edit_file.write(str(spoon))
+    value_array = []
+    value_array.append(meta_dict)
+    value_array.append(text_entries_dict)
+    value_array.append(image_entries_dict)
+    return value_array
 
 
 # time runtime of program
@@ -275,13 +280,6 @@ def count_lines(input_file):
     lines = input_file.count('\n')
     return lines
 
-"""
-def covert_dict_to_json():
-    print('implement')
-
-def input_article_id():
-    input_id_dict = {}"""
-
 
 # output results
 if __name__ == "__main__":
@@ -299,6 +297,17 @@ if __name__ == "__main__":
     # parse and edit
     print('please insert name of newly converted html file:')
     htmlfile_name = input()
-    custom_edit_html(htmlfile_name)
+
+    value_array = custom_edit_html(htmlfile_name)
     print('Ready to send to Blog Backend')
+    # meta to util
+    meta_dict = value_array[0]
+    # text to util
+    text_entries_dict = value_array[1]
+    # images to utils
+    image_entries_dict = value_array[2]
+    x = utils
+    # x.connect()
+    x.meta(meta_dict)
+    x.text(text_entries_dict)
     t.stop()

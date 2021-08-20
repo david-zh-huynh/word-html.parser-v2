@@ -1,6 +1,8 @@
 import requests
 from datetime import date
 
+meta_id = ""
+
 
 def connect():
     # input_id_dict = {}
@@ -11,7 +13,8 @@ def connect():
     api_article_nr = {"content_number": cont_number}
 
     # send content number to backend
-    api_article_nr_send = requests.post('https://monkeybackend.ch/api/blog_new/create-post-number/', data=api_article_nr)
+    api_article_nr_send = requests.post('https://monkeybackend.ch/api/blog_new/create-post-number/',
+                                        data=api_article_nr)
     print(api_article_nr_send.status_code)
 
     # if valid status code from api
@@ -59,11 +62,18 @@ def meta(meta_dict):
         meta_id_returned = meta_id_response.json()
         meta_id = meta_id_returned['id']
         print('meta_id: ' + str(meta_id))
+        global meta_id
         return meta_id
+
     else:
         print('Error: ' + str(x.status_code))
 
+
 def text(text_entries_dict):
     text_dict = text_entries_dict
+    meta_get = meta_id
+    print(meta_get)
 
-    text_data = {}
+    text_data = {
+
+    }

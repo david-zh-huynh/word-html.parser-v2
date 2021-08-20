@@ -1,6 +1,7 @@
 import argparse
 import os
 import time
+import re
 
 import pypandoc
 from bs4 import BeautifulSoup
@@ -112,6 +113,7 @@ def custom_edit_html(filename):
                         rm_td_bold.unwrap()
             else:
                 print('no td tags found, program continues...')
+
     # Create dictionary for tables
     for table in spoon.find_all('table'):
         if table:
@@ -137,6 +139,7 @@ def custom_edit_html(filename):
         for i in meta_dict:
             print(i + ": " + meta_dict[i])
         print('______________________________')
+
     # Create dictionary and nummerate tags with exceptions for li, links and images
     dict_backend = {}
     lib = {'h2', 'h3', 'h4', 'h5', 'p', 'ol', 'ul', 'img'}
@@ -174,16 +177,49 @@ def custom_edit_html(filename):
                 dict_backend[id_counter] = i.get_text()
 
     # dictionary for backend
-    import re
+    text_entries_dict = {}
     lib_send = {'h2', 'h3', 'h4', 'h5', 'p', 'ol', 'ul'}
     for dict_send in spoon.find_all(lib_send):
         if dict_send:
             key = dict_send['id']
-            # remove p start and end tags
-            value = re.sub("</?p[^>]*>", "", str(dict_send))
-            print(key, value)
+            value = ""
+            # remove id attribute
+            if re.search(" id[^>]*", str(dict_send)):
+                value = re.sub(" id[^>]*", "", str(dict_send))
+
+            # remove p tags
+            if re.search("</?p[^>]*>", str(dict_send)):
+                value = re.sub("</?p[^>]*>", "", str(dict_send))
+
+            # remove br tags
+            value = value.replace("<br/>", "")
+
+            send_find_a_tags = spoon.find_all('a')
+            # add attributes to anchor tags
+            if send_find_a_tags:
+                for send_find_a in send_find_a_tags:
+                    if send_find_a:
+                        send_find_a['rel'] = 'noopener noreferrer'
+                        send_find_a['target'] = '_blank'
+                    else:
+                        print('Error: no links found')
+
+            text_entries_dict[key] = value
+
         else:
             print('original word document either empty or very poorly formatted, thus no html output can be displayed/generated')
+    """# output of text_entries_dict
+    for key in text_entries_dict:
+        print(str(key), "this is the output of key: " + text_entries_dict[key])"""
+
+
+    # dictionary for images with discription
+    image_entries_dict = {}
+    for img_dict_send in spoon.find_all('img'):
+        key = img_dict_send['id']
+        value = ""
+        if img_dict_send:
+            print(key, img_dict_send['src'], img_dict_send.next_sibling)
 
     encoding = spoon.original_encoding or 'utf-8'
     print("encoding: " + encoding)

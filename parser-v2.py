@@ -142,8 +142,8 @@ def custom_edit_html(filename):
 
     # Create dictionary and nummerate tags with exceptions for li, links and images
     dict_backend = {}
-    lib = {'h2', 'h3', 'h4', 'h5', 'p', 'ol', 'ul', 'img'}
-    dic_html = spoon.find_all(lib)
+    back_lib = {'h2', 'h3', 'h4', 'h5', 'p', 'ol', 'ul', 'img'}
+    dic_html = spoon.find_all(back_lib)
     id_counter = 0
     # for loop to iterate through all tags mentioned above
     for i in dic_html:
@@ -207,19 +207,27 @@ def custom_edit_html(filename):
             text_entries_dict[key] = value
 
         else:
-            print('original word document either empty or very poorly formatted, thus no html output can be displayed/generated')
+            print(
+                'original word document either empty or very poorly formatted, thus no html output can be displayed/generated')
     """# output of text_entries_dict
     for key in text_entries_dict:
         print(str(key), "this is the output of key: " + text_entries_dict[key])"""
 
-
     # dictionary for images with discription
     image_entries_dict = {}
-    for img_dict_send in spoon.find_all('img'):
-        key = img_dict_send['id']
-        value = ""
-        if img_dict_send:
-            print(key, img_dict_send['src'], img_dict_send.next_sibling)
+    for img_dict_list_search in dic_html:
+        if img_dict_list_search:
+            for img_dict_send in spoon.find_all('img'):
+                key = img_dict_send
+                value = ""
+                if img_dict_send:
+                    img_dict_descs = spoon.find_all(id=key['id']+1)
+                    for img_dict_desc in img_dict_descs:
+                        value = img_dict_desc.string
+                # assign  key to value
+                image_entries_dict[key] = value
+    for key in image_entries_dict:
+        print(str(key['id']), image_entries_dict[key])
 
     encoding = spoon.original_encoding or 'utf-8'
     print("encoding: " + encoding)

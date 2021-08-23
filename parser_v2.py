@@ -218,6 +218,7 @@ def custom_edit_html(filename):
     # break between text content and images
     print('Image Content: ')
     print('------------------------------')
+
     # dictionary for images with discription
     image_entries_dict = {}
     for img_dict_list_search in dic_html:
@@ -234,6 +235,10 @@ def custom_edit_html(filename):
     for key in image_entries_dict:
         print(str(key['id']), image_entries_dict[key])
 
+    # dictionary for h1
+    h1_entry_find = spoon.find('h1')
+    h1_entry = str(h1_entry_find.string)
+
     encoding = spoon.original_encoding or 'utf-8'
     print("______________________________")
     print("encoding: " + encoding)
@@ -242,8 +247,10 @@ def custom_edit_html(filename):
     # print(dict_backend)
     with open(filename, "w") as edit_file:
         edit_file.write(str(spoon))
+
     value_array = []
     value_array.append(meta_dict)
+    value_array.append(h1_entry)
     value_array.append(text_entries_dict)
     value_array.append(image_entries_dict)
     return value_array
@@ -302,12 +309,17 @@ if __name__ == "__main__":
     print('Ready to send to Blog Backend')
     # meta to util
     meta_dict = value_array[0]
+    # h1 to utils
+    h1_entry = value_array[1]
     # text to util
-    text_entries_dict = value_array[1]
+    text_entries_dict = value_array[2]
     # images to utils
-    image_entries_dict = value_array[2]
+    image_entries_dict = value_array[3]
     x = utils
     # x.connect()
     x.meta(meta_dict)
+    x.long_desc()
+    x.h1(h1_entry)
     x.text(text_entries_dict)
+    x.img(image_entries_dict)
     t.stop()

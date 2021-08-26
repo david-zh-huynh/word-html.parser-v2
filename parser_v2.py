@@ -1,6 +1,5 @@
 import argparse
 import os
-import time
 import re
 
 import pypandoc
@@ -21,13 +20,10 @@ def convert_to_html(filename):
     # write the output
     filename, ext = os.path.splitext(filename)
     filename = "{0}.html".format(filename)
-    with open(filename, "w") as f:
-        # Python 2 "fix". If this isn't a string, encode it.
-        if type(output) is not str:
-            output = output.encode("utf-8")
-
+    with open(filename, 'w') as f:
         f.write(output)
-        print('Done! Output written to: {}\n'.format(filename))
+        html_file_name = '{}'.format(filename)
+        return html_file_name
 
 
 # edit html file and modify
@@ -112,6 +108,14 @@ def custom_edit_html(filename):
             else:
                 print('no td tags found, program continues...')
 
+        # remove
+        htag_rm_lib = {'h2', 'h3', 'h4', 'h5'}
+        for htag_rm in spoon.find_all(htag_rm_lib):
+            if htag_rm:
+                htag_rm_strongs = htag_rm.findChildren('strong')
+                if htag_rm_strongs:
+                    for htag_rm_strong in htag_rm_strongs:
+                        htag_rm_strong.unwrap()
     # Create dictionary for tables
     for table in spoon.find_all('table'):
         if table:
@@ -176,6 +180,37 @@ def custom_edit_html(filename):
             else:
                 dict_backend[id_counter] = i.get_text()
 
+    # break between text content and images
+    print('Image Content: ')
+    print('------------------------------')
+
+    # dictionary for images with discription
+    image_entries_dict = {}
+    for img_dict_list_search in dic_html:
+        if img_dict_list_search:
+            for img_dict_send in spoon.find_all('img'):
+                key = img_dict_send
+                value = ""
+                if img_dict_send:
+                    img_dict_descs = spoon.find_all(id=key['id'] + 1)
+                    del img_dict_send['alt']
+                    del img_dict_send['style']
+                    for img_dict_desc in img_dict_descs:
+                        value = img_dict_desc.string
+                # assign  key to value
+                image_entries_dict[key] = value
+    for key in image_entries_dict:
+        print(str(key['id']), image_entries_dict[key])
+
+    # decompose image description
+    for img_desc_rm in dic_html:
+        if img_desc_rm:
+            for img_desc_img in spoon.find_all('img'):
+                if img_desc_img:
+                    img_rm_descs = spoon.find_all(id=img_desc_img['id'] + 1)
+                    for img_rm_desc in img_rm_descs:
+                        img_rm_desc.decompose()
+
     # dictionary for backend
     text_entries_dict = {}
     lib_send = {'h2', 'h3', 'h4', 'h5', 'p', 'ol', 'ul'}
@@ -215,25 +250,7 @@ def custom_edit_html(filename):
     for key in text_entries_dict:
         print(str(key), text_entries_dict[key])
 
-    # break between text content and images
-    print('Image Content: ')
-    print('------------------------------')
 
-    # dictionary for images with discription
-    image_entries_dict = {}
-    for img_dict_list_search in dic_html:
-        if img_dict_list_search:
-            for img_dict_send in spoon.find_all('img'):
-                key = img_dict_send
-                value = ""
-                if img_dict_send:
-                    img_dict_descs = spoon.find_all(id=key['id'] + 1)
-                    for img_dict_desc in img_dict_descs:
-                        value = img_dict_desc.string
-                # assign  key to value
-                image_entries_dict[key] = value
-    for key in image_entries_dict:
-        print(str(key['id']), image_entries_dict[key])
 
     # dictionary for h1
     h1_entry_find = spoon.find('h1')
@@ -251,36 +268,9 @@ def custom_edit_html(filename):
     value_array = []
     value_array.append(meta_dict)
     value_array.append(h1_entry)
-    value_array.append(text_entries_dict)
     value_array.append(image_entries_dict)
+    value_array.append(text_entries_dict)
     return value_array
-
-
-# time runtime of program
-
-class TimerError(Exception):
-    """A custom exception used to report errors in use of Timer class"""
-
-
-class Timer:
-    def __init__(self):
-        self._start_time = None
-
-    def start(self):
-        """Start a new timer"""
-        if self._start_time is not None:
-            raise TimerError(f"Timer is running. Use .stop() to stop it")
-
-        self._start_time = time.perf_counter()
-
-    def stop(self):
-        """Stop the timer, and report the elapsed time"""
-        if self._start_time is None:
-            raise TimerError(f"Timer is not running. Use .start() to start it")
-
-        elapsed_time = time.perf_counter() - self._start_time
-        self._start_time = None
-        print(f"Elapsed time: {elapsed_time:0.4f} seconds")
 
 
 def count_lines(input_file):
@@ -290,9 +280,7 @@ def count_lines(input_file):
 
 # output results
 if __name__ == "__main__":
-    # initialize runtime_timer
-    t = Timer()
-    t.start()
+    token = utils.login()
     parser = argparse.ArgumentParser(
         description="Convert a Word document to an HTML document."
     )
@@ -302,8 +290,7 @@ if __name__ == "__main__":
     convert_to_html(args.path)
 
     # parse and edit
-    print('please insert name of newly converted html file:')
-    htmlfile_name = input()
+    htmlfile_name = convert_to_html(args.path)
 
     value_array = custom_edit_html(htmlfile_name)
     print('Ready to send to Blog Backend')
@@ -311,15 +298,14 @@ if __name__ == "__main__":
     meta_dict = value_array[0]
     # h1 to utils
     h1_entry = value_array[1]
-    # text to util
-    text_entries_dict = value_array[2]
     # images to utils
-    image_entries_dict = value_array[3]
+    image_entries_dict = value_array[2]
+    # text to util
+    text_entries_dict = value_array[3]
     x = utils
-    # x.connect()
-    x.meta(meta_dict)
-    x.long_desc()
-    x.h1(h1_entry)
-    x.text(text_entries_dict)
-    x.img(image_entries_dict)
-    t.stop()
+    #x.connect(token)
+    meta_id = x.meta(meta_dict, token)
+    x.long_desc(meta_id, token)
+    x.h1(h1_entry, token)
+    x.img(image_entries_dict, token)
+    x.text(text_entries_dict, token)
